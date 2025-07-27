@@ -1,0 +1,4 @@
+aiohttp
+playwright
+tf-playwright-stealth
+python-dotenv

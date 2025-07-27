@@ -1,0 +1,36 @@
+# Environment variables
+.env
+
+# Authentication data
+auth_details.json
+
+# Browser profile
+custom_profile/
+
+# Downloaded billing exports
+billing_exports/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+.venv/
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/general_Logs/*.log

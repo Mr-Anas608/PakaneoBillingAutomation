@@ -1,0 +1,15 @@
+𝙋𝙖𝙠𝙖𝙣𝙚𝙤 𝘽𝙞𝙡𝙡𝙞𝙣𝙜 𝘼𝙪𝙩𝙤𝙢𝙖𝙩𝙞𝙤𝙣 𝙏𝙤𝙤𝙡
+
+This is an async-powered tool built to automate downloading CSV data super fast from Pakaneo websites.
+
+I'll use advanced async methods and reverse engineering to get past any roadblocks. The goal is to download data as quickly as the website allows, making sure to add smart delays so we don't overwhelm their servers and keep everything running smoothly and legally.
+
+𝗬𝗼𝘂𝗿 𝗯𝗲𝗻𝗲𝗳𝗶𝘁𝘀 𝗶𝗻𝗰𝗹𝘂𝗱𝗲:
+
+➤ 3 Free revisions for any unexpected bugs or small tweaks.
+
+➤ 7 Days full support once the project is done.
+
+𝗗𝗲𝗹𝗶𝘃𝗲𝗿𝘆 𝗧𝗶𝗺𝗲:
+
+Maximum 5 days. I'll actually aim to get the first version to you within 2 days, so you have plenty of time (2-3 days) for testing and any revisions before the final deadline.
