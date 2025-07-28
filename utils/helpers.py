@@ -6,13 +6,16 @@ file operations, and HTTP request utilities.
 """
 
 import os
+import sys
 import json
 import logging
 import re
 import traceback
 from datetime import datetime, timezone
 from urllib.parse import urlparse
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
+
+
 
 from logs.custom_logging import setup_logging
 
@@ -139,7 +142,7 @@ def get_auth_data(url: str, data_key: str, filename: str = "auth_details.json") 
         # Extract main domain URL only
         parsed = urlparse(url)
         main_domain_url = f"{parsed.scheme}://{parsed.netloc}"
-        
+   
         # Check if file exists
         if not os.path.exists(filename):
             logger.warning(f"Auth file {filename} not found")
@@ -201,7 +204,7 @@ def format_duration(seconds: float) -> str:
     return f"{int(hours)}h {int(minutes)}m {int(seconds)}s"
 
 
-def validate_auth_data(url: str, required_keys: list = None) -> bool:
+def validate_auth_data(url: str, required_keys: List[str] = None) -> bool:
     """
     Validate that required authentication data exists for a URL.
     

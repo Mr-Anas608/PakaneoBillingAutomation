@@ -42,7 +42,7 @@ This tool automatically:
 pip install -r requirements.txt
 
 # Install browser for automation
-playwright install chromium
+playwright install
 
 # Create your credentials file
 copy .env.example .env
@@ -59,14 +59,14 @@ python main.py --apiuser-ids [USER_IDS] --start-date [START] --end-date [END]
 **Examples:**
 
 ```bash
-# Download data for multiple users
-python main.py --apiuser-ids 204,205,206 --start-date 2025-06-01 --end-date 2025-06-30
-
 # Download data for single user
 python main.py --apiuser-ids 207 --start-date 2025-07-01 --end-date 2025-07-15
 
-# Use different Pakaneo URL
-python main.py --apiuser-ids 204,205 --start-date 2025-06-01 --end-date 2025-06-30 --base-url https://millerbecker.pakaneo.com
+# Download data for multiple users
+python main.py --apiuser-ids 204,205,206 --start-date 2025-06-01 --end-date 2025-06-30
+
+# Use different Pakaneo URLs
+python main.py --apiuser-ids 204,205 --start-date 2025-06-01 --end-date 2025-06-30 --base-urls https://millerbecker.pakaneo.com https://millerbecker2.pakaneo.com
 ```
 
 ### 3. Results
@@ -90,8 +90,9 @@ PASSWORD=your_password
 ```
 
 ### Advanced Settings (`input/base_input.py`)
-- `BASE_URL`: Your Pakaneo platform URL
+- `BASE_URLS`: List of Pakaneo platform URLs to try
 - `MAX_CONCURRENT_REQUESTS`: Number of simultaneous downloads (default: 20)
+- `MAX_BROWSER_SESSIONS`: Number of concurrent browser sessions (default: 5)
 
 ## 📁 Output Structure
 
@@ -115,10 +116,10 @@ PakaneoBillingAutomation/
 ## 🛠️ Technical Architecture
 
 ### Core Components
-- **Browser Automation**: Handles login and session management
-- **API Integration**: Communicates with Pakaneo's internal APIs
-- **Concurrent Processing**: Downloads multiple files simultaneously
-- **Error Recovery**: Automatic retry and token refresh systems
+- **Browser Automation**: Handles login and session management using Playwright
+- **API Integration**: Communicates with Pakaneo's internal APIs using aiohttp
+- **Concurrent Processing**: Downloads multiple files simultaneously with semaphore control
+- **Error Recovery**: Automatic retry system with comprehensive error handling
 
 ### Security Features
 - Credentials stored locally in encrypted format
@@ -142,10 +143,11 @@ PakaneoBillingAutomation/
 - System will automatically retry failed downloads
 
 ### Logs
-Detailed logs are saved in `logs/general_Logs/` for troubleshooting:
+Detailed logs are saved in `logs/General_Logs/` for troubleshooting:
 - `main.log`: Overall process logs
-- `automation.log`: Download process details
-- `bot.log`: Authentication process logs
+- `automation.log`: CSV download process details
+- `bot.log`: Browser automation and authentication logs
+- `helpers.log`: Utility function logs
 
 ## 🏆 Benefits
 
