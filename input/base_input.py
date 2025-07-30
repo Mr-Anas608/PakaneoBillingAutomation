@@ -5,7 +5,23 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Default configuration for testing - can be overridden via CLI
-API_USERS_IDS = [204, 205, 207, 509]
+API_USERS_IDS = [
+    205,
+    206,
+    207,
+    211,
+    215,
+    216,
+    221,
+    222,
+    223,
+    224,
+    225,
+    226,
+    229,
+    228
+]
+
 START_DATE = '2025-07-01'
 END_DATE = '2025-07-15'
 
