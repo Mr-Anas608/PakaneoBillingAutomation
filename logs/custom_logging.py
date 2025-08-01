@@ -89,7 +89,7 @@ def setup_logging(
     console_level: int = logging.INFO, # Default level for console output
     file_level: int = logging.DEBUG,    # Default level for file output
     save_log: bool = True,
-    log_dir: str = r"logs\general_Logs" # Default log directory
+    log_dir: str = r"logs\general_logs" # Default log directory
 ) -> logging.Logger:
     """
     Configures a logger with specified levels for console and file handlers.

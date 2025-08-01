@@ -66,7 +66,7 @@ python main.py --apiuser-ids 207 --start-date 2025-07-01 --end-date 2025-07-15
 python main.py --apiuser-ids 204,205,206 --start-date 2025-06-01 --end-date 2025-06-30
 
 # Use different Pakaneo URLs
-python main.py --apiuser-ids 204,205 --start-date 2025-06-01 --end-date 2025-06-30 --base-urls https://millerbecker.pakaneo.com https://millerbecker2.pakaneo.com
+python main.py --apiuser-ids 204,205 --start-date 2025-06-01 --end-date 2025-06-30 --base-urls https://millerbecker2.pakaneo.com https://millerbecker.pakaneo.com 
 ```
 
 ### 3. Results

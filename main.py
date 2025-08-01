@@ -15,7 +15,7 @@ from logs.custom_logging import setup_logging
 from input.base_input import BASE_URLS
 from PakaneoBillingAutomationBot import PakaneoBillingAutomationBot
 
-logger = setup_logging(logger_name="PakaneoBillingMain", log_file="main.log", console_level=logging.DEBUG)
+logger = setup_logging(logger_name="PakaneoBillingMain", console_level=logging.DEBUG)
 
 
 def parse_apiuser_ids(ids_str: str) -> List[int]:

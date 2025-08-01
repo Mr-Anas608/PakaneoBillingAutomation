@@ -19,7 +19,7 @@ from typing import Optional, Dict, Any, List
 
 from logs.custom_logging import setup_logging
 
-logger = setup_logging(logger_name="PakaneoBillingHelpers", log_file="helpers.log", console_level=logging.INFO)
+logger = setup_logging(logger_name="PakaneoBillingHelpers", console_level=logging.INFO)
 
 # Standard HTTP headers for GET requests
 HEADERS_GET = {
@@ -226,3 +226,75 @@ def validate_auth_data(url: str, required_keys: List[str] = None) -> bool:
     
     logger.debug(f"Auth data validation passed for {url}")
     return True
+
+
+def create_date_folder(start_date: str, end_date: str, base_dir: str = "billing_exports") -> str:
+    """
+    Create a date-based subfolder for organizing files.
+    
+    Args:
+        start_date: Start date in YYYY-MM-DD format
+        end_date: End date in YYYY-MM-DD format
+        base_dir: Base directory for exports
+        
+    Returns:
+        Path to the created date folder
+    """
+    folder_name = f"{start_date} to {end_date}"
+    folder_path = os.path.join(base_dir, folder_name)
+    
+    try:
+        os.makedirs(folder_path, exist_ok=True)
+        logger.debug(f"Created/verified date folder: {folder_path}")
+        return folder_path
+    except Exception as e:
+        logger.error(f"Error creating date folder {folder_path}: {e}")
+        # Fallback to base directory
+        os.makedirs(base_dir, exist_ok=True)
+        return base_dir
+
+
+async def save_report(report_data: Dict[str, Any], start_date: str, end_date: str) -> bool:
+    """
+    Save download report to JSON file in date-based subfolder.
+    
+    Args:
+        report_data: Report data to save
+        start_date: Start date for folder creation
+        end_date: End date for folder creation
+        
+    Returns:
+        True if successful, False otherwise
+    """
+    try:
+        # Create date-based subfolder
+        date_folder = create_date_folder(start_date, end_date)
+        
+        report_filename = f"download_report_{start_date}_to_{end_date}.json"
+        report_path = os.path.join(date_folder, report_filename)
+        
+        # Load existing report if exists
+        existing_report = {"runs": []}
+        if os.path.exists(report_path):
+            try:
+                with open(report_path, 'r', encoding='utf-8') as f:
+                    existing_report = json.load(f)
+                if "runs" not in existing_report:
+                    existing_report["runs"] = []
+            except (json.JSONDecodeError, IOError):
+                existing_report = {"runs": []}
+        
+        # Append current run
+        existing_report["runs"].append(report_data)
+        
+        # Save report
+        with open(report_path, 'w', encoding='utf-8') as f:
+            json.dump(existing_report, f, indent=2, ensure_ascii=False)
+        
+        logger.info(f"📊 Report saved: {report_path}")
+        return True
+        
+    except Exception as e:
+        logger.error(f"Error saving report: {e}")
+        logger.debug(traceback.format_exc())
+        return False

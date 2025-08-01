@@ -17,11 +17,12 @@ from playwright_stealth import stealth_async
 from dotenv import load_dotenv
 
 from logs.custom_logging import setup_logging 
-from input.base_input import EMAIL, PASSWORD, MAX_BROWSER_SESSIONS, BASE_URLS, PAGE_LOAD_TIMEOUT, LOGIN_TIMEOUT, API_REQUEST_TIMEOUT
+from input.base_input import EMAIL, PASSWORD, MAX_BROWSER_SESSIONS, BASE_URLS, PAGE_LOAD_TIMEOUT, LOGIN_TIMEOUT, API_REQUEST_TIMEOUT, MAX_RETRIES, RETRY_DELAY
 from utils.pakaneo_csv_downloader import PakaneCsvDownloader
-from utils.helpers import save_auth_data, validate_auth_data, get_auth_data
+from utils.helpers import save_auth_data, validate_auth_data, get_auth_data, save_report
+from datetime import datetime
 
-logger = setup_logging(logger_name="PakaneoBillingBot", log_file="bot.log", console_level=logging.INFO)
+logger = setup_logging(logger_name="PakaneoBillingBot", console_level=logging.INFO)
 
 # Load environment variables from .env file
 load_dotenv()
@@ -40,6 +41,30 @@ class PakaneoBillingAutomationBot:
         self.end_date = end_date
         self.base_urls = base_urls
         self.semaphore_limit = asyncio.Semaphore(MAX_BROWSER_SESSIONS)
+        
+        # Initialize user-centric report
+        self.user_report = {
+            "summary": {
+                "total_users": len(api_user_ids),
+                "successful_users": 0,
+                "failed_users": 0,
+                "total_downloads": 0,
+                "successful_downloads": 0,
+                "failed_downloads": 0,
+                "start_time": None,
+                "end_time": None,
+                "date_range": f"{start_date} to {end_date}"
+            },
+            "users": {str(user_id): {"status": "pending", "downloads": [], "errors": []} for user_id in api_user_ids},
+            "failed_downloads": []
+        }
+    
+    def add_user_error(self, user_id: int, error_msg: str):
+        """Add error message to specific user."""
+        user_key = str(user_id)
+        if user_key in self.user_report["users"]:
+            self.user_report["users"][user_key]["errors"].append(error_msg)
+            logger.debug(f"Added error for user {user_id}: {error_msg}")
         
 
     async def is_logged_in(self, page: Page) -> bool:
@@ -217,7 +242,7 @@ class PakaneoBillingAutomationBot:
 
     async def extract_user_data(self, browser_context: BrowserContext, user_id: int) -> Optional[Dict[str, Any]]:
         """
-        Extract authentication data for a specific user.
+        Extract authentication data for a specific user with retry logic.
         
         Args:
             browser_context: Playwright browser context
@@ -228,72 +253,86 @@ class PakaneoBillingAutomationBot:
         """
         await asyncio.sleep(random.uniform(0.2, 1))
         
-        try:
-            for url in self.base_urls:
-                full_url = f"{url}/settings/apiusers/{user_id}"
+        for attempt in range(MAX_RETRIES):
+            try:
+                for url in self.base_urls:
+                    full_url = f"{url}/settings/apiusers/{user_id}"
+                    
+                    # Load existing cookies if available
+                    cookies = get_auth_data(url, "cookies")
+                    if cookies:
+                        await browser_context.add_cookies(cookies)
+                    
+                    page = await browser_context.new_page()
+                    await stealth_async(page)
                 
-                # Load existing cookies if available
-                cookies = get_auth_data(url, "cookies")
-                if cookies:
-                    await browser_context.add_cookies(cookies)
+                    logger.debug(f"Navigating to '{full_url}' (attempt {attempt + 1}/{MAX_RETRIES})")
+                    await page.goto(full_url, timeout=PAGE_LOAD_TIMEOUT)
+                    await page.wait_for_load_state("networkidle", timeout=PAGE_LOAD_TIMEOUT)
                 
-                page = await browser_context.new_page()
-                await stealth_async(page)
-            
-                logger.debug(f"Navigating to '{full_url}'")
-                await page.goto(full_url, timeout=PAGE_LOAD_TIMEOUT)
-                await page.wait_for_load_state("networkidle", timeout=PAGE_LOAD_TIMEOUT)
-            
-                # Check if already logged in
-                if await self.is_logged_in(page):
-                    logger.info(f"Already logged in for user {user_id}")
+                    # Check if already logged in
+                    if await self.is_logged_in(page):
+                        user_data = await self.capture_api_headers(page, full_url)
+                        if user_data:
+                            user_data["user_id"] = user_id
+                            cookies = await browser_context.cookies()
+                            # Save auth data for this URL
+                            save_auth_data(url, "api_headers", user_data["api_headers"])
+                            save_auth_data(url, "api_url", user_data["api_url"])
+                            save_auth_data(url, "cookies", cookies)
+                            await page.close()
+                            return user_data
+                        
+                    # Need to login first
+                    logger.info(f"Performing login for user {user_id}")
+                    if not await self.perform_login(page):
+                        logger.error(f"Login failed for user {user_id}")
+                        await page.close()
+                        continue
+                    
+                    # Verify login was successful
+                    if not await self.is_logged_in(page):
+                        logger.error(f"Login verification failed for user {user_id}")
+                        await page.close()
+                        continue
+                    
+                    # Save cookies for future use
+                    cookies = await browser_context.cookies()
+                    save_auth_data(url, "cookies", cookies)
+                    
+                    # Extract API data
                     user_data = await self.capture_api_headers(page, full_url)
+                    await page.close()
+                    
                     if user_data:
                         user_data["user_id"] = user_id
-                        cookies = await browser_context.cookies()
                         # Save auth data for this URL
                         save_auth_data(url, "api_headers", user_data["api_headers"])
                         save_auth_data(url, "api_url", user_data["api_url"])
-                        save_auth_data(url, "cookies", cookies)
-                        await page.close()
+                        logger.info(f"Successfully extracted auth data for user {user_id}")
                         return user_data
+                
+                # If we reach here, all URLs failed for this attempt
+                if attempt < MAX_RETRIES - 1:
+                    logger.warning(f"All URLs failed for user {user_id}, retrying in {RETRY_DELAY}s (attempt {attempt + 1}/{MAX_RETRIES})")
+                    await asyncio.sleep(RETRY_DELAY)
+                    continue
                     
-                # Need to login first
-                logger.info(f"Performing login for user {user_id}")
-                if not await self.perform_login(page):
-                    logger.error(f"Login failed for user {user_id}")
-                    await page.close()
+            except Exception as e:
+                error_msg = f"Error extracting auth data (attempt {attempt + 1}/{MAX_RETRIES}): {str(e)}"
+                logger.error(f"{error_msg} for user {user_id}")
+                logger.debug(traceback.format_exc())
+                self.add_user_error(user_id, error_msg)
+                if attempt < MAX_RETRIES - 1:
+                    logger.info(f"Retrying user {user_id} in {RETRY_DELAY}s")
+                    await asyncio.sleep(RETRY_DELAY)
                     continue
-                
-                # Verify login was successful
-                if not await self.is_logged_in(page):
-                    logger.error(f"Login verification failed for user {user_id}")
-                    await page.close()
-                    continue
-                
-                # Save cookies for future use
-                cookies = await browser_context.cookies()
-                save_auth_data(url, "cookies", cookies)
-                
-                # Extract API data
-                user_data = await self.capture_api_headers(page, full_url)
-                await page.close()
-                
-                if user_data:
-                    user_data["user_id"] = user_id
-                    # Save auth data for this URL
-                    save_auth_data(url, "api_headers", user_data["api_headers"])
-                    save_auth_data(url, "api_url", user_data["api_url"])
-                    logger.info(f"Successfully extracted auth data for user {user_id}")
-                    return user_data
-                
-            logger.warning(f"Failed to extract data for user {user_id} from all URLs")
-            return None
-            
-        except Exception as e:
-            logger.error(f"Error extracting auth data for user {user_id}: {e}")
-            logger.debug(traceback.format_exc())
-            return None
+        
+        # Final failure message after all retries exhausted
+        final_error = f"Failed to extract data after {MAX_RETRIES} attempts"
+        logger.error(f"❌ {final_error} for user {user_id}")
+        self.add_user_error(user_id, final_error)
+        return None
 
     async def extract_user_data_with_semaphore(self, browser_context: BrowserContext, user_id: int):
         """Extract user data with semaphore control."""
@@ -309,13 +348,25 @@ class PakaneoBillingAutomationBot:
         
         results = await asyncio.gather(*tasks, return_exceptions=True)
         
-        # Filter out None results and exceptions
+        # Process results and update user report
         valid_results = []
         for i, result in enumerate(results):
+            user_id = self.api_user_ids[i]
+            user_key = str(user_id)
+            
             if isinstance(result, Exception):
-                logger.error(f"Error processing user {self.api_user_ids[i]}: {result}")
+                error_msg = f"Unexpected error during processing: {str(result)}"
+                logger.error(f"Error processing user {user_id}: {result}")
+                self.add_user_error(user_id, error_msg)
+                self.user_report["users"][user_key]["status"] = "failed"
             elif result is not None:
                 valid_results.append(result)
+                self.user_report["users"][user_key]["status"] = "success"
+                logger.info(f"Successfully extracted auth data for user {user_id}")
+            else:
+                self.user_report["users"][user_key]["status"] = "failed"
+                if not self.user_report["users"][user_key]["errors"]:
+                    self.add_user_error(user_id, "No data extracted - unknown error")
                 
         return valid_results
 
@@ -328,6 +379,7 @@ class PakaneoBillingAutomationBot:
         """
         try:
             logger.info(f"Starting Pakaneo bot for {len(self.api_user_ids)} users")
+            self.user_report["summary"]["start_time"] = datetime.now().isoformat()
             
             async with async_playwright() as playwright:
                 # Launch persistent browser context to maintain session
@@ -346,25 +398,41 @@ class PakaneoBillingAutomationBot:
                 
                 logger.info(f"Successfully extracted data for {len(user_data_list)} users")
                 
-                # Initialize downloader and start downloads
-                downloader = PakaneCsvDownloader(
-                    api_users_data=user_data_list,
-                    start_date=self.start_date,
-                    end_date=self.end_date
-                )
+            # Initialize downloader and start downloads
+            downloader = PakaneCsvDownloader(
+                api_users_data=user_data_list,
+                start_date=self.start_date,
+                end_date=self.end_date,
+                user_report=self.user_report  # Pass user report to downloader
+            )
+            
+            success = await downloader.download_all_data()
+            
+            # Finalize report
+            self.user_report["summary"]["end_time"] = datetime.now().isoformat()
+            self.user_report["summary"]["successful_users"] = sum(1 for u in self.user_report["users"].values() if u["status"] == "success")
+            self.user_report["summary"]["failed_users"] = sum(1 for u in self.user_report["users"].values() if u["status"] == "failed")
+            
+            # Save user-centric report
+            await save_report(self.user_report, self.start_date, self.end_date)
+            
+            if success:
+                logger.info("✅ Automation completed successfully")
+            else:
+                logger.error("❌ Automation failed")
                 
-                success = await downloader.download_all_data()
-                
-                if success:
-                    logger.info("✅ Automation completed successfully")
-                else:
-                    logger.error("❌ Automation failed")
-                    
-                return success
+            return success
 
         except Exception as e:
             logger.error(f"Error in Pakaneo bot: {e}")
             logger.debug(traceback.format_exc())
+            
+            # Save report even on critical failure
+            self.user_report["summary"]["end_time"] = datetime.now().isoformat()
+            try:
+                await save_report(self.user_report, self.start_date, self.end_date)
+            except:
+                pass
             return False
 
 
