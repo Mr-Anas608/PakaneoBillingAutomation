@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pakaneo Billing Automation</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <style>
+    body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; }
+    .modal { display: none; }
+    .modal.open { display: flex; }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b border-gray-200">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-16">
+          <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+              <i class="fas fa-chart-line text-white text-lg"></i>
+            </div>
+            <div>
+              <h1 class="text-xl font-bold text-gray-900">Pakaneo Billing</h1>
+              <p class="text-sm text-gray-500">Automation Platform</p>
+            </div>
+          </div>
+          <div class="flex items-center space-x-4">
+            <div class="text-sm text-gray-600">
+              <span class="font-medium" id="headerSelected">0</span> customers selected
+            </div>
+            <div class="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
+              <i class="fas fa-user text-gray-600 text-sm"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <!-- Tabs -->
+      <div class="mb-6 border-b border-slate-200">
+        <nav class="-mb-px flex gap-6" aria-label="Tabs">
+          <button id="tab-run" class="border-b-2 border-transparent px-1 py-3 text-sm font-medium text-slate-600 hover:text-slate-800 hover:border-slate-300">Run Wizard</button>
+          <button id="tab-customers" class="border-b-2 border-transparent px-1 py-3 text-sm font-medium text-slate-600 hover:text-slate-800 hover:border-slate-300">Manage Customers</button>
+        </nav>
+      </div>
+
+    <!-- Panels -->
+    <section id="panel-run" class="mt-6">
+      <!-- Progress Steps -->
+      <div class="mb-6">
+        <div class="flex items-center justify-center gap-4">
+          <div class="flex items-center" id="step1">
+            <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium bg-blue-600 text-white">1</div>
+            <span class="ml-2 text-sm font-medium text-slate-700">Select Customers</span>
+          </div>
+          <div class="w-16 h-0.5 bg-slate-300" id="bar12"></div>
+          <div class="flex items-center text-slate-400" id="step2">
+            <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium bg-slate-200">2</div>
+            <span class="ml-2 text-sm font-medium">Date Range</span>
+          </div>
+          <div class="w-16 h-0.5 bg-slate-200" id="bar23"></div>
+          <div class="flex items-center text-slate-400" id="step3">
+            <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium bg-slate-200">3</div>
+            <span class="ml-2 text-sm font-medium">Download</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2">
+            <!-- Step 1: Select Customers -->
+            <div id="step1Card" class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <div class="flex items-center justify-between mb-6">
+                <div>
+                  <h2 class="text-xl font-semibold text-gray-900">Select Customers</h2>
+                  <p class="text-gray-600 mt-1">Choose which customers to download billing data for</p>
+                </div>
+                <div class="flex space-x-2">
+                  <button id="btn-select-all" class="px-3 py-1.5 text-sm bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors">
+                    <i class="fas fa-check-all mr-1"></i> Select All
+                  </button>
+                  <button id="btn-clear-all" class="px-3 py-1.5 text-sm bg-gray-50 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors">
+                    <i class="fas fa-times mr-1"></i> Clear All
+                  </button>
+                </div>
+              </div>
+              
+              <!-- Search -->
+              <div class="mb-4">
+                <div class="relative">
+                  <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                  <input id="searchInput" type="text" placeholder="Search customers..." 
+                         class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+              </div>
+
+              <!-- Customer Grid -->
+              <div id="customersList" class="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-96 overflow-y-auto"></div>
+
+              <div class="flex justify-end mt-6">
+                <button id="btnNext1" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors">
+                  Continue <i class="fas fa-arrow-right ml-2"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Step 2: Date Range -->
+            <div id="step2Card" class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hidden">
+              <div class="mb-6">
+                <h2 class="text-xl font-semibold text-gray-900">Select Date Range</h2>
+                <p class="text-gray-600 mt-1">Choose the period for billing data export</p>
+              </div>
+
+              <!-- Quick Date Presets -->
+              <div class="mb-6">
+                <p class="text-sm font-medium text-gray-700 mb-3">Quick Select:</p>
+                <div class="flex flex-wrap gap-2">
+                  <button data-preset="today" class="preset-btn px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors border border-transparent">Today</button>
+                  <button data-preset="yesterday" class="preset-btn px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors border border-transparent">Yesterday</button>
+                  <button data-preset="thisWeek" class="preset-btn px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors border border-transparent">This Week</button>
+                  <button data-preset="lastWeek" class="preset-btn px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors border border-transparent">Last Week</button>
+                  <button data-preset="thisMonth" class="preset-btn px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors border border-transparent">This Month</button>
+                  <button data-preset="lastMonth" class="preset-btn px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors border border-transparent">Last Month</button>
+                </div>
+              </div>
+
+              <!-- Custom Date Range -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
+                  <input id="startDate" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">End Date</label>
+                  <input id="endDate" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+              </div>
+
+              <!-- Month Half Controls -->
+              <div id="monthHalfControls" class="hidden flex flex-wrap gap-2 mb-6">
+                <button data-preset="firstHalf" class="preset-btn px-3 py-1.5 text-sm rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 border border-transparent">First half (1–15)</button>
+                <button data-preset="secondHalf" class="preset-btn px-3 py-1.5 text-sm rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 border border-transparent">Second half (16–End)</button>
+                <button data-preset="fullMonth" class="preset-btn px-3 py-1.5 text-sm rounded-lg bg-gray-100 hover:bg-gray-200 border border-transparent">Full month</button>
+              </div>
+
+              <!-- Date Range Summary -->
+              <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6" id="rangeSummaryCard" style="display: none;">
+                <div class="flex items-center">
+                  <i class="fas fa-calendar-alt text-blue-600 mr-2"></i>
+                  <span class="text-blue-800 font-medium">Selected Range: </span>
+                  <span class="text-blue-700 ml-1" id="rangeSummary"></span>
+                </div>
+              </div>
+
+              <div class="flex justify-between">
+                <button id="btnBack2" class="px-6 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
+                  <i class="fas fa-arrow-left mr-2"></i> Back
+                </button>
+                <button id="btnNext2" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors">
+                  Continue <i class="fas fa-arrow-right ml-2"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Step 3: Download -->
+            <div id="step3Card" class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hidden">
+              <div class="mb-6">
+                <h2 class="text-xl font-semibold text-gray-900">Ready to Download</h2>
+                <p class="text-gray-600 mt-1">Review your selection and start the download process</p>
+              </div>
+
+              <!-- Download Summary -->
+              <div class="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-6 mb-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+                  <div>
+                    <div class="text-2xl font-bold text-blue-600" id="summaryCustomersCount">0</div>
+                    <div class="text-sm text-gray-600">Customers</div>
+                  </div>
+                  <div>
+                    <div class="text-lg font-bold text-purple-600" id="summaryDaysCount">Not set</div>
+                    <div class="text-sm text-gray-600">Date Range</div>
+                  </div>
+                  <div>
+                    <div class="text-2xl font-bold text-green-600" id="summaryFilesCount">0</div>
+                    <div class="text-sm text-gray-600">Est. Files</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Download Button -->
+              <div class="text-center">
+                <button id="btn-start" class="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:scale-105 text-lg font-medium">
+                  <i class="fas fa-download mr-2" id="downloadIcon"></i>
+                  <i class="fas fa-spinner fa-spin mr-2" id="loadingIcon" style="display: none;"></i>
+                  <span id="downloadText">Start Download</span>
+                </button>
+              </div>
+
+              <p id="runMessage" class="mt-4 text-sm text-gray-700 text-center hidden"></p>
+
+              <div class="flex justify-between mt-6">
+                <button id="btnBack3" class="px-6 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
+                  <i class="fas fa-arrow-left mr-2"></i> Back
+                </button>
+                <button id="btnReset" class="px-6 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
+                  <i class="fas fa-redo mr-2"></i> Start Over
+                </button>
+              </div>
+            </div>
+        </div>
+
+          <!-- Sidebar -->
+          <div class="lg:col-span-1">
+            
+            <!-- Progress Summary -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+              <h3 class="text-lg font-semibold text-gray-900 mb-4">Summary</h3>
+              
+              <div class="space-y-3">
+                <div class="flex items-center justify-between">
+                  <span class="text-gray-600">Customers</span>
+                  <span class="font-medium" id="summarySelected">0 selected</span>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-gray-600">Date Range</span>
+                  <span class="font-medium" id="summaryDaysDisplay">Not set</span>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-gray-600">Status</span>
+                  <span class="px-2 py-1 text-xs rounded-full" id="summaryStatusBadge">Select Customers</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Recent Downloads -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <h3 class="text-lg font-semibold text-gray-900 mb-4">Recent Downloads</h3>
+              
+              <div id="recentDownloads" class="space-y-3"></div>
+              <p id="recentEmpty" class="text-sm text-gray-500">No downloads yet.</p>
+            </div>
+
+          </div>
+      </div>
+    </section>
+
+    <section id="panel-customers" class="mt-6 hidden">
+      <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+        <div class="flex items-end justify-between gap-4 mb-4">
+          <div>
+            <h2 class="text-lg font-semibold text-slate-900">Manage Customers</h2>
+            <p class="text-sm text-slate-500">Add, edit, or remove ID/Name entries</p>
+          </div>
+          <form id="form-add" class="flex gap-2">
+            <input id="addId" type="number" placeholder="ID" class="w-28 px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500" required />
+            <input id="addName" type="text" placeholder="Name" class="w-56 px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500" required />
+            <button class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">Add</button>
+          </form>
+        </div>
+
+        <div class="mb-3">
+          <input id="customerSearch" type="text" placeholder="Search customers..." class="w-full px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        </div>
+
+        <div class="overflow-hidden rounded-lg border border-slate-200">
+          <table class="w-full text-sm">
+            <thead class="bg-slate-50 text-slate-700">
+              <tr>
+                <th class="text-left font-medium px-4 py-2">ID</th>
+                <th class="text-left font-medium px-4 py-2">Name</th>
+                <th class="text-right font-medium px-4 py-2">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="customersTable" class="divide-y divide-slate-200 bg-white"></tbody>
+          </table>
+        </div>
+        <p id="customersEmpty" class="text-sm text-slate-500 mt-3 hidden">No customers yet. Add your first one above.</p>
+      </div>
+    </section>
+  </div>
+
+  <!-- Edit/Delete Modal -->
+  <div id="modal" class="modal fixed inset-0 z-50 items-center justify-center">
+    <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"></div>
+    <div class="relative bg-white w-full max-w-md mx-4 rounded-xl shadow-lg border border-slate-200 p-5">
+      <h3 id="modalTitle" class="text-base font-semibold text-slate-900 mb-3">Edit Customer</h3>
+      <form id="modalForm" class="space-y-3">
+        <div>
+          <label class="block text-sm text-slate-700 mb-1" for="modalId">ID</label>
+          <input id="modalId" type="number" class="w-full px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500" required />
+          <p id="modalIdErr" class="text-xs text-rose-600 mt-1 hidden"></p>
+        </div>
+        <div>
+          <label class="block text-sm text-slate-700 mb-1" for="modalName">Name</label>
+          <input id="modalName" type="text" class="w-full px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500" required />
+          <p id="modalNameErr" class="text-xs text-rose-600 mt-1 hidden"></p>
+        </div>
+        <div class="flex items-center justify-end gap-2 pt-2">
+          <button type="button" id="modalCancel" class="px-3 py-2 rounded-lg bg-slate-100 hover:bg-slate-200">Cancel</button>
+          <button type="submit" id="modalSave" class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toasts container -->
+  <div id="toasts" class="fixed top-4 right-4 z-50 space-y-2"></div>
+
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
