@@ -124,7 +124,7 @@ def api_delete_customer(customer_id: int):
 
 # ---- Download automation ----
 
-def run_download_background(task_id: str, api_user_ids: List[int], start_date: str, end_date: str):
+def run_download_background(task_id: str, api_user_ids: List[int], start_date: str, end_date: str, export_types: List[str] = None):
     """Run download automation in background thread."""
     try:
         active_downloads[task_id] = {
@@ -134,7 +134,7 @@ def run_download_background(task_id: str, api_user_ids: List[int], start_date: s
         
         # Import and run existing automation
         from main import run_automation
-        success = asyncio.run(run_automation(api_user_ids, start_date, end_date))
+        success = asyncio.run(run_automation(api_user_ids, start_date, end_date, export_types=export_types))
         
         # Update status based on success/failure
         if success:
@@ -165,6 +165,7 @@ def api_run():
     ids = payload.get("api_user_ids") or []
     start_date = payload.get("start_date")
     end_date = payload.get("end_date")
+    export_types = payload.get("export_types") or None
 
     # Basic validation
     try:
@@ -185,7 +186,7 @@ def api_run():
     task_id = f"download_{int(time.time())}"
     thread = threading.Thread(
         target=run_download_background,
-        args=(task_id, ids, start_date, end_date),
+        args=(task_id, ids, start_date, end_date, export_types),
         daemon=True
     )
     thread.start()

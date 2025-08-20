@@ -60,14 +60,19 @@
             <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium bg-blue-600 text-white">1</div>
             <span class="ml-2 text-sm font-medium text-slate-700">Select Customers</span>
           </div>
-          <div class="w-16 h-0.5 bg-slate-300" id="bar12"></div>
+          <div class="w-12 h-0.5 bg-slate-300" id="bar12"></div>
           <div class="flex items-center text-slate-400" id="step2">
             <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium bg-slate-200">2</div>
             <span class="ml-2 text-sm font-medium">Date Range</span>
           </div>
-          <div class="w-16 h-0.5 bg-slate-200" id="bar23"></div>
+          <div class="w-12 h-0.5 bg-slate-200" id="bar23"></div>
           <div class="flex items-center text-slate-400" id="step3">
             <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium bg-slate-200">3</div>
+            <span class="ml-2 text-sm font-medium">Export Options</span>
+          </div>
+          <div class="w-12 h-0.5 bg-slate-200" id="bar34"></div>
+          <div class="flex items-center text-slate-400" id="step4">
+            <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium bg-slate-200">4</div>
             <span class="ml-2 text-sm font-medium">Download</span>
           </div>
         </div>
@@ -169,8 +174,70 @@
               </div>
             </div>
 
-            <!-- Step 3: Download -->
+            <!-- Step 3: Export Options -->
             <div id="step3Card" class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hidden">
+              <div class="mb-6">
+                <h2 class="text-xl font-semibold text-gray-900">Export Options</h2>
+                <p class="text-gray-600 mt-1">Choose which types of data to download</p>
+              </div>
+
+              <!-- CSV Type Selection -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <label class="flex items-start p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-all duration-200 export-type-card">
+                  <input type="checkbox" data-export-type="storeproducts" class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mt-1" checked />
+                  <div class="ml-3 flex-1">
+                    <div class="text-sm font-medium text-gray-900">Store Articles</div>
+                    <div class="text-xs text-gray-500 mt-1">Products currently in store</div>
+                  </div>
+                </label>
+                
+                <label class="flex items-start p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-all duration-200 export-type-card">
+                  <input type="checkbox" data-export-type="storedproducts" class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mt-1" checked />
+                  <div class="ml-3 flex-1">
+                    <div class="text-sm font-medium text-gray-900">Stored Articles</div>
+                    <div class="text-xs text-gray-500 mt-1">Products stored in warehouse</div>
+                  </div>
+                </label>
+                
+                <label class="flex items-start p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-all duration-200 export-type-card">
+                  <input type="checkbox" data-export-type="packedproducts" class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mt-1" checked />
+                  <div class="ml-3 flex-1">
+                    <div class="text-sm font-medium text-gray-900">Packed Articles</div>
+                    <div class="text-xs text-gray-500 mt-1">Individual packed products</div>
+                  </div>
+                </label>
+                
+                <label class="flex items-start p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-all duration-200 export-type-card">
+                  <input type="checkbox" data-export-type="packedorders" class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mt-1" checked />
+                  <div class="ml-3 flex-1">
+                    <div class="text-sm font-medium text-gray-900">Packed Orders</div>
+                    <div class="text-xs text-gray-500 mt-1">Complete packed orders</div>
+                  </div>
+                </label>
+              </div>
+
+              <!-- Quick Actions -->
+              <div class="flex justify-center space-x-3 mb-6">
+                <button id="btn-select-all-exports" class="px-4 py-2 text-sm bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors">
+                  <i class="fas fa-check-all mr-1"></i> Select All
+                </button>
+                <button id="btn-clear-all-exports" class="px-4 py-2 text-sm bg-gray-50 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors">
+                  <i class="fas fa-times mr-1"></i> Clear All
+                </button>
+              </div>
+
+              <div class="flex justify-between">
+                <button id="btnBack3" class="px-6 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
+                  <i class="fas fa-arrow-left mr-2"></i> Back
+                </button>
+                <button id="btnNext3" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors">
+                  Continue <i class="fas fa-arrow-right ml-2"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Step 4: Download -->
+            <div id="step4Card" class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hidden">
               <div class="mb-6">
                 <h2 class="text-xl font-semibold text-gray-900">Ready to Download</h2>
                 <p class="text-gray-600 mt-1">Review your selection and start the download process</p>
@@ -206,7 +273,7 @@
               <p id="runMessage" class="mt-4 text-sm text-gray-700 text-center hidden"></p>
 
               <div class="flex justify-between mt-6">
-                <button id="btnBack3" class="px-6 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
+                <button id="btnBack4" class="px-6 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
                   <i class="fas fa-arrow-left mr-2"></i> Back
                 </button>
                 <button id="btnReset" class="px-6 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
@@ -231,6 +298,10 @@
                 <div class="flex items-center justify-between">
                   <span class="text-gray-600">Date Range</span>
                   <span class="font-medium" id="summaryDaysDisplay">Not set</span>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-gray-600">Export Types</span>
+                  <span class="font-medium" id="summaryExportTypes">4 selected</span>
                 </div>
                 <div class="flex items-center justify-between">
                   <span class="text-gray-600">Status</span>

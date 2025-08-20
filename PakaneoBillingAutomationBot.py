@@ -34,12 +34,14 @@ class PakaneoBillingAutomationBot:
         api_user_ids: List[int],
         start_date: str,
         end_date: str,
-        base_urls: List[str] = BASE_URLS
+        base_urls: List[str] = BASE_URLS,
+        export_types: List[str] = None
     ):
         self.api_user_ids = api_user_ids
         self.start_date = start_date
         self.end_date = end_date
         self.base_urls = base_urls
+        self.export_types = export_types
         self.semaphore_limit = asyncio.Semaphore(MAX_BROWSER_SESSIONS)
         
         # Initialize user-centric report
@@ -403,6 +405,7 @@ class PakaneoBillingAutomationBot:
                 api_users_data=user_data_list,
                 start_date=self.start_date,
                 end_date=self.end_date,
+                export_types=self.export_types,
                 user_report=self.user_report  # Pass user report to downloader
             )
             

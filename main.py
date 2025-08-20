@@ -26,7 +26,7 @@ def parse_apiuser_ids(ids_str: str) -> List[int]:
         raise argparse.ArgumentTypeError(f"Invalid API user IDs: {e}")
 
 
-async def run_automation(apiuser_ids: List[int], start_date: str, end_date: str, base_urls: List[str] = None):
+async def run_automation(apiuser_ids: List[int], start_date: str, end_date: str, base_urls: List[str] = None, export_types: List[str] = None):
     """Run the complete automation workflow."""
     if base_urls is None:
         base_urls = BASE_URLS
@@ -35,6 +35,7 @@ async def run_automation(apiuser_ids: List[int], start_date: str, end_date: str,
     logger.info(f"API User IDs: {apiuser_ids}")
     logger.info(f"Date range: {start_date} to {end_date}")
     logger.info(f"Base URLs: {base_urls}")
+    logger.info(f"Export types: {export_types or 'All (default)'}")
     logger.debug(f"Configuration loaded successfully")
     
     # Initialize and run the bot
@@ -42,7 +43,8 @@ async def run_automation(apiuser_ids: List[int], start_date: str, end_date: str,
         api_user_ids=apiuser_ids,
         start_date=start_date,
         end_date=end_date,
-        base_urls=base_urls
+        base_urls=base_urls,
+        export_types=export_types
     )
     
     success = await bot.run()
@@ -92,13 +94,20 @@ Examples:
         default=BASE_URLS,
         help=f'Base URLs for Pakaneo (default: {BASE_URLS})'
     )
+    parser.add_argument(
+        '--export-types',
+        nargs='+',
+        default=None,
+        choices=['storeproducts', 'storedproducts', 'packedproducts', 'packedorders'],
+        help='Export types to download (default: all types)'
+    )
     
     args = parser.parse_args()
     
     async def run_main():
         """Run the main automation."""
         try:
-            return await run_automation(args.apiuser_ids, args.start_date, args.end_date, args.base_urls)
+            return await run_automation(args.apiuser_ids, args.start_date, args.end_date, args.base_urls, args.export_types)
         except KeyboardInterrupt:
             logger.info("Operation interrupted by user")
             return False

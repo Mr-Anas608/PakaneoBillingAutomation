@@ -5,7 +5,7 @@ This module handles the main automation workflow for downloading billing data
 from the Pakaneo API. It includes CSRF token handling, concurrent downloads,
 and comprehensive error handling.
 """
-
+import sys
 import aiohttp
 import asyncio
 import json
@@ -17,6 +17,11 @@ import traceback
 from datetime import datetime
 from urllib.parse import urlparse
 from typing import List, Dict, Any, Optional
+
+
+# Add project root to Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.append(project_root)
 
 from logs.custom_logging import setup_logging 
 from utils.helpers import get_auth_data, HEADERS_GET, generate_csv_filename, format_duration, save_report, create_date_folder
@@ -35,11 +40,13 @@ class PakaneCsvDownloader:
         api_users_data: List[Dict[str, Any]],
         start_date: str,
         end_date: str,
+        export_types: List[str] = None,
         user_report: Dict[str, Any] = None
     ):
         self.api_users_data = api_users_data
         self.start_date = start_date
         self.end_date = end_date
+        self.export_types = export_types or ["storeproducts", "storedproducts", "packedproducts", "packedorders"]
         self.download_semaphore = asyncio.Semaphore(MAX_CONCURRENT_REQUESTS)
         self.user_report = user_report  # Reference to shared user report
         
@@ -156,12 +163,11 @@ class PakaneCsvDownloader:
                         result = await response.json()
                         logger.debug(f"Received JSON with {len(result)} keys for API user '{user_id}'")
                         
-                        # Filter for relevant data types
-                        wanted_keys = ["storeproducts", "storedproducts", "packedproducts", "packedorders"]
+                        # Filter for relevant data types based on user selection
                         selected_options = {}
                         
                         for key, value in result.items():
-                            if any(wanted in key.lower() for wanted in wanted_keys):
+                            if any(export_type in key.lower() for export_type in self.export_types):
                                 selected_options[key] = value
                         
                         logger.info(f"Found {len(selected_options)} relevant data options for API user '{user_id}'")

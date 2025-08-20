@@ -15,7 +15,7 @@ This platform automatically:
 ## ✨ Key Features
 
 ### 🌐 **Modern Web Interface**
-- **Intuitive 3-step wizard** - Select customers, set dates, download
+- **Intuitive 4-step wizard** - Select customers, set dates, choose export types, download
 - **Real-time progress tracking** - See download status as it happens
 - **Smart date presets** - Today, This Week, This Month, etc.
 - **Customer management** - Add, edit, and organize your customer list
@@ -63,7 +63,8 @@ This will automatically:
 **2. Use the Web Interface:**
 - **Step 1:** Select customers from your list
 - **Step 2:** Choose date range (or use presets like "This Month")
-- **Step 3:** Click download and watch real-time progress
+- **Step 3:** Select which CSV types to download (Store Articles, Stored Articles, etc.)
+- **Step 4:** Click download and watch real-time progress
 
 ### Option 2: Command Line Interface
 
@@ -87,6 +88,9 @@ python main.py --apiuser-ids 207 --start-date 2025-07-01 --end-date 2025-07-15
 
 # Download data for multiple customers
 python main.py --apiuser-ids 204,205,206 --start-date 2025-06-01 --end-date 2025-06-30
+
+# Download specific export types only
+python main.py --apiuser-ids 207 --start-date 2025-07-01 --end-date 2025-07-15 --export-types storeproducts packedorders
 
 # Use different Pakaneo URLs
 python main.py --apiuser-ids 204,205 --start-date 2025-06-01 --end-date 2025-06-30 --base-urls https://millerbecker2.pakaneo.com https://millerbecker.pakaneo.com 
@@ -145,8 +149,9 @@ PakaneoBillingAutomation/
 ### Web Interface Flow:
 1. **Customer Selection**: Choose from your saved customer list
 2. **Date Range**: Pick dates using smart presets or custom range
-3. **Download Process**: Real-time progress with status updates
-4. **Completion**: Files organized automatically, recent downloads updated
+3. **Export Type Selection**: Choose which CSV types to download (all selected by default)
+4. **Download Process**: Real-time progress with status updates
+5. **Completion**: Files organized automatically, recent downloads updated
 
 ### Behind the Scenes:
 1. **Authentication Check**: Verifies if you're already logged in

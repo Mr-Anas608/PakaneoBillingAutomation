@@ -15,7 +15,9 @@ from datetime import datetime, timezone
 from urllib.parse import urlparse
 from typing import Optional, Dict, Any, List
 
-
+# Add project root to Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.append(project_root)
 
 from logs.custom_logging import setup_logging
 

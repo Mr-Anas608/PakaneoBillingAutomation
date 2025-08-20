@@ -1,10 +1,11 @@
 (() => {
   // ---- State ----
   const state = {
-    currentStep: 1, // ADD: Track current step like ui_demo
+    currentStep: 1, // Track current step
     customers: [],
     filtered: [],
     selectedIds: new Set(),
+    selectedExports: new Set(["storeproducts", "storedproducts", "packedproducts", "packedorders"]), // Default all selected
     status: "idle", // idle | running | done | failed
     startDate: "",
     endDate: "",
@@ -67,11 +68,18 @@
   const step1Card = document.getElementById("step1Card");
   const step2Card = document.getElementById("step2Card");
   const step3Card = document.getElementById("step3Card");
+  const step4Card = document.getElementById("step4Card");
   const btnNext1 = document.getElementById("btnNext1");
   const btnBack2 = document.getElementById("btnBack2");
   const btnNext2 = document.getElementById("btnNext2");
   const btnBack3 = document.getElementById("btnBack3");
+  const btnNext3 = document.getElementById("btnNext3");
+  const btnBack4 = document.getElementById("btnBack4");
   const btnReset = document.getElementById("btnReset");
+  
+  // Export type buttons
+  const btnSelectAllExports = document.getElementById("btn-select-all-exports");
+  const btnClearAllExports = document.getElementById("btn-clear-all-exports");
 
   // ---- Utils ----
   function dayCount(a, b) {
@@ -157,13 +165,15 @@
     const step1 = document.getElementById("step1");
     const step2 = document.getElementById("step2");
     const step3 = document.getElementById("step3");
+    const step4 = document.getElementById("step4");
     const bar12 = document.getElementById("bar12");
     const bar23 = document.getElementById("bar23");
+    const bar34 = document.getElementById("bar34");
 
-    // FIXED: Highlight based on currentStep, not data availability
     const isStep1Active = state.currentStep >= 1;
     const isStep2Active = state.currentStep >= 2;
     const isStep3Active = state.currentStep >= 3;
+    const isStep4Active = state.currentStep >= 4;
 
     // Step 1
     step1.querySelector("div").className = `w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
@@ -176,14 +186,21 @@
       isStep2Active ? "bg-blue-600 text-white" : "bg-slate-200"
     }`;
     step2.className = `flex items-center ${isStep2Active ? "text-blue-600" : "text-slate-400"}`;
-    bar12.className = `w-16 h-0.5 ${isStep2Active ? "bg-blue-600" : "bg-slate-300"}`;
+    bar12.className = `w-12 h-0.5 ${isStep2Active ? "bg-blue-600" : "bg-slate-300"}`;
 
     // Step 3
     step3.querySelector("div").className = `w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
       isStep3Active ? "bg-blue-600 text-white" : "bg-slate-200"
     }`;
     step3.className = `flex items-center ${isStep3Active ? "text-blue-600" : "text-slate-400"}`;
-    bar23.className = `w-16 h-0.5 ${isStep3Active ? "bg-blue-600" : "bg-slate-200"}`;
+    bar23.className = `w-12 h-0.5 ${isStep3Active ? "bg-blue-600" : "bg-slate-200"}`;
+
+    // Step 4
+    step4.querySelector("div").className = `w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+      isStep4Active ? "bg-blue-600 text-white" : "bg-slate-200"
+    }`;
+    step4.className = `flex items-center ${isStep4Active ? "text-blue-600" : "text-slate-400"}`;
+    bar34.className = `w-12 h-0.5 ${isStep4Active ? "bg-blue-600" : "bg-slate-200"}`;
   }
 
   function formatDateRange(start, end) {
@@ -205,10 +222,10 @@
     if (state.status === "done") return "Completed";
     if (state.status === "failed") return "Failed";
     
-    // Simple step-based status like ui_demo
     if (state.currentStep === 1) return "Select Customers";
     if (state.currentStep === 2) return "Set Date Range";
-    if (state.currentStep === 3) return "Ready";
+    if (state.currentStep === 3) return "Choose Export Types";
+    if (state.currentStep === 4) return "Ready";
     return "Pending";
   }
 
@@ -218,7 +235,7 @@
     if (state.status === "failed") return "bg-red-100 text-red-800";
     
     // Green when ready to download, gray otherwise
-    if (state.currentStep === 3 && state.selectedIds.size > 0 && state.startDate && state.endDate) {
+    if (state.currentStep === 4 && state.selectedIds.size > 0 && state.startDate && state.endDate && state.selectedExports.size > 0) {
       return "bg-green-100 text-green-800";
     }
     return "bg-gray-100 text-gray-800";
@@ -233,6 +250,10 @@
     const summaryDaysDisplay = document.getElementById("summaryDaysDisplay");
     if (summaryDaysDisplay) {
       summaryDaysDisplay.textContent = formatDateRange(state.startDate, state.endDate);
+    }
+    const summaryExportTypes = document.getElementById("summaryExportTypes");
+    if (summaryExportTypes) {
+      summaryExportTypes.textContent = `${state.selectedExports.size} selected`;
     }
     
     // Update dynamic status badge like ui_demo
@@ -253,10 +274,10 @@
       const dateRange = formatDateRange(state.startDate, state.endDate);
       summaryDaysCount.textContent = dateRange !== "Not set" ? dateRange : "Not set";
     }
-    if (summaryFilesCount) summaryFilesCount.textContent = state.selectedIds.size * 4; // 4 files per customer
+    if (summaryFilesCount) summaryFilesCount.textContent = state.selectedIds.size * state.selectedExports.size; // Dynamic file count
     
     // Update download button state
-    btnStart.disabled = !(state.selectedIds.size > 0 && state.startDate && state.endDate);
+    btnStart.disabled = !(state.selectedIds.size > 0 && state.startDate && state.endDate && state.selectedExports.size > 0);
     
     // Update range summary
     updateRangeSummary();
@@ -265,6 +286,7 @@
     // Update navigation buttons
     btnNext1.disabled = state.selectedIds.size === 0;
     btnNext2.disabled = !(state.startDate && state.endDate);
+    btnNext3.disabled = state.selectedExports.size === 0;
   }
 
   function renderCustomerCard(cust) {
@@ -551,7 +573,8 @@
       runMessage.textContent = "Starting download process...";
       
       const api_user_ids = Array.from(state.selectedIds);
-      const payload = { api_user_ids, start_date: state.startDate, end_date: state.endDate };
+      const export_types = Array.from(state.selectedExports);
+      const payload = { api_user_ids, start_date: state.startDate, end_date: state.endDate, export_types };
       const data = await sendJSON("/api/run", "POST", payload);
       
       if (data.task_id) {
@@ -764,18 +787,18 @@
 
   // ---- Wizard nav ----
   function showStep(step) {
-    state.currentStep = step; // FIXED: Track current step
-    // 1 -> only step1 visible; 2 -> step2; 3 -> step3
+    state.currentStep = step;
     step1Card.classList.toggle("hidden", step !== 1);
     step2Card.classList.toggle("hidden", step !== 2);
     step3Card.classList.toggle("hidden", step !== 3);
+    step4Card.classList.toggle("hidden", step !== 4);
     updateSteps();
-    updateSummaries(); // ADD: Update status when step changes
+    updateSummaries();
   }
 
   // ADD: Simple navigation functions like ui_demo
   function nextStep() {
-    if (state.currentStep < 3) {
+    if (state.currentStep < 4) {
       showStep(state.currentStep + 1);
     }
   }
@@ -788,10 +811,17 @@
 
   function resetWizard() {
     state.selectedIds.clear();
+    state.selectedExports.clear();
+    state.selectedExports.add("storeproducts");
+    state.selectedExports.add("storedproducts");
+    state.selectedExports.add("packedproducts");
+    state.selectedExports.add("packedorders");
     state.startDate = "";
     state.endDate = "";
     startDate.value = "";
     endDate.value = "";
+    // Reset export checkboxes
+    document.querySelectorAll('[data-export-type]').forEach(cb => cb.checked = true);
     showStep(1);
     runMessage.classList.add("hidden");
     runMessage.textContent = "";
@@ -846,7 +876,38 @@
   btnBack2.addEventListener("click", prevStep);
   btnNext2.addEventListener("click", () => { if (state.startDate && state.endDate) nextStep(); });
   btnBack3.addEventListener("click", prevStep);
+  btnNext3.addEventListener("click", () => { if (state.selectedExports.size > 0) nextStep(); });
+  btnBack4.addEventListener("click", prevStep);
   btnReset.addEventListener("click", resetWizard);
+  
+  // Export type selection events
+  document.addEventListener("change", (e) => {
+    if (e.target.matches('[data-export-type]')) {
+      const exportType = e.target.getAttribute("data-export-type");
+      if (e.target.checked) {
+        state.selectedExports.add(exportType);
+      } else {
+        state.selectedExports.delete(exportType);
+      }
+      updateSummaries();
+    }
+  });
+  
+  btnSelectAllExports.addEventListener("click", () => {
+    document.querySelectorAll('[data-export-type]').forEach(cb => {
+      cb.checked = true;
+      state.selectedExports.add(cb.getAttribute("data-export-type"));
+    });
+    updateSummaries();
+  });
+  
+  btnClearAllExports.addEventListener("click", () => {
+    document.querySelectorAll('[data-export-type]').forEach(cb => {
+      cb.checked = false;
+      state.selectedExports.delete(cb.getAttribute("data-export-type"));
+    });
+    updateSummaries();
+  });
 
   customersTable.addEventListener("click", (e) => {
     const editId = e.target.getAttribute("data-edit");
