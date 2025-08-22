@@ -12,7 +12,7 @@ from typing import List
 import logging
 
 from logs.custom_logging import setup_logging
-from input.base_input import BASE_URLS
+from input.base_input import SELECTED_ACCOUNTS, ACCOUNT_URLS
 from PakaneoBillingAutomationBot import PakaneoBillingAutomationBot
 
 logger = setup_logging(logger_name="PakaneoBillingMain", console_level=logging.DEBUG)
@@ -26,15 +26,25 @@ def parse_apiuser_ids(ids_str: str) -> List[int]:
         raise argparse.ArgumentTypeError(f"Invalid API user IDs: {e}")
 
 
-async def run_automation(apiuser_ids: List[int], start_date: str, end_date: str, base_urls: List[str] = None, export_types: List[str] = None):
+async def run_automation(
+    apiuser_ids: List[int], 
+    start_date: str, 
+    end_date: str, 
+    selected_accounts: List[str] = None, 
+    export_types: List[str] = None
+    ):
     """Run the complete automation workflow."""
-    if base_urls is None:
-        base_urls = BASE_URLS
-        
+    if selected_accounts is None:
+        selected_accounts = SELECTED_ACCOUNTS
+    
+    # Convert account keys to URLs
+    account_urls = [ACCOUNT_URLS[key] for key in selected_accounts if key in ACCOUNT_URLS]
+    
     logger.info("=== Pakaneo Billing Automation Started ===")
     logger.info(f"API User IDs: {apiuser_ids}")
     logger.info(f"Date range: {start_date} to {end_date}")
-    logger.info(f"Base URLs: {base_urls}")
+    logger.info(f"Selected accounts: {selected_accounts}")
+    logger.info(f"Account URLs: {account_urls}")
     logger.info(f"Export types: {export_types or 'All (default)'}")
     logger.debug(f"Configuration loaded successfully")
     
@@ -43,7 +53,7 @@ async def run_automation(apiuser_ids: List[int], start_date: str, end_date: str,
         api_user_ids=apiuser_ids,
         start_date=start_date,
         end_date=end_date,
-        base_urls=base_urls,
+        account_urls=account_urls,
         export_types=export_types
     )
     
@@ -89,10 +99,11 @@ Examples:
     
     # Optional arguments
     parser.add_argument(
-        '--base-urls',
+        '--selected-accounts',
         nargs='+',
-        default=BASE_URLS,
-        help=f'Base URLs for Pakaneo (default: {BASE_URLS})'
+        default=SELECTED_ACCOUNTS,
+        choices=list(ACCOUNT_URLS.keys()),
+        help=f'Selected accounts (default: {SELECTED_ACCOUNTS})'
     )
     parser.add_argument(
         '--export-types',
@@ -107,7 +118,7 @@ Examples:
     async def run_main():
         """Run the main automation."""
         try:
-            return await run_automation(args.apiuser_ids, args.start_date, args.end_date, args.base_urls, args.export_types)
+            return await run_automation(args.apiuser_ids, args.start_date, args.end_date, args.selected_accounts, args.export_types)
         except KeyboardInterrupt:
             logger.info("Operation interrupted by user")
             return False
@@ -124,4 +135,4 @@ Examples:
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(run_automation(apiuser_ids=[207], start_date="08/01/2025", end_date="08/15/2025", selected_accounts=['millerbecker']))

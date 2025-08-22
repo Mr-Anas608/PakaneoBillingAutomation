@@ -178,51 +178,85 @@
             <div id="step3Card" class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hidden">
               <div class="mb-6">
                 <h2 class="text-xl font-semibold text-gray-900">Export Options</h2>
-                <p class="text-gray-600 mt-1">Choose which types of data to download</p>
+                <p class="text-gray-600 mt-1">Choose which accounts and data types to download</p>
               </div>
 
-              <!-- CSV Type Selection -->
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                <label class="flex items-start p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-all duration-200 export-type-card">
-                  <input type="checkbox" data-export-type="storeproducts" class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mt-1" checked />
-                  <div class="ml-3 flex-1">
-                    <div class="text-sm font-medium text-gray-900">Store Articles</div>
-                    <div class="text-xs text-gray-500 mt-1">Products currently in store</div>
-                  </div>
-                </label>
+              <!-- Source Accounts -->
+              <div class="mb-6">
+                <p class="text-sm font-medium text-gray-700 mb-3">Source Accounts:</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <label class="flex items-start p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-all duration-200 account-card">
+                    <input type="checkbox" data-account="millerbecker2" class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mt-1" checked />
+                    <div class="ml-3 flex-1">
+                      <div class="text-sm font-medium text-gray-900">MillerBecker Main</div>
+                      <div class="text-xs text-gray-500 mt-1">millerbecker2.pakaneo.com</div>
+                    </div>
+                  </label>
+                  
+                  <label class="flex items-start p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-all duration-200 account-card">
+                    <input type="checkbox" data-account="millerbecker" class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mt-1" checked />
+                    <div class="ml-3 flex-1">
+                      <div class="text-sm font-medium text-gray-900">MillerBecker Backup</div>
+                      <div class="text-xs text-gray-500 mt-1">millerbecker.pakaneo.com</div>
+                    </div>
+                  </label>
+                </div>
                 
-                <label class="flex items-start p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-all duration-200 export-type-card">
-                  <input type="checkbox" data-export-type="storedproducts" class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mt-1" checked />
-                  <div class="ml-3 flex-1">
-                    <div class="text-sm font-medium text-gray-900">Stored Articles</div>
-                    <div class="text-xs text-gray-500 mt-1">Products stored in warehouse</div>
-                  </div>
-                </label>
-                
-                <label class="flex items-start p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-all duration-200 export-type-card">
-                  <input type="checkbox" data-export-type="packedproducts" class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mt-1" checked />
-                  <div class="ml-3 flex-1">
-                    <div class="text-sm font-medium text-gray-900">Packed Articles</div>
-                    <div class="text-xs text-gray-500 mt-1">Individual packed products</div>
-                  </div>
-                </label>
-                
-                <label class="flex items-start p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-all duration-200 export-type-card">
-                  <input type="checkbox" data-export-type="packedorders" class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mt-1" checked />
-                  <div class="ml-3 flex-1">
-                    <div class="text-sm font-medium text-gray-900">Packed Orders</div>
-                    <div class="text-xs text-gray-500 mt-1">Complete packed orders</div>
-                  </div>
-                </label>
+                <div class="flex justify-center space-x-3 mb-6">
+                  <button id="btn-select-all-accounts" class="px-3 py-1.5 text-sm bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors">
+                    <i class="fas fa-check-all mr-1"></i> Select All Accounts
+                  </button>
+                  <button id="btn-clear-all-accounts" class="px-3 py-1.5 text-sm bg-gray-50 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors">
+                    <i class="fas fa-times mr-1"></i> Clear All Accounts
+                  </button>
+                </div>
+              </div>
+
+              <!-- Export Types -->
+              <div class="mb-6">
+                <p class="text-sm font-medium text-gray-700 mb-3">Export Types:</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <label class="flex items-start p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-all duration-200 export-type-card">
+                    <input type="checkbox" data-export-type="storeproducts" class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mt-1" checked />
+                    <div class="ml-3 flex-1">
+                      <div class="text-sm font-medium text-gray-900">Store Articles</div>
+                      <div class="text-xs text-gray-500 mt-1">Products currently in store</div>
+                    </div>
+                  </label>
+                  
+                  <label class="flex items-start p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-all duration-200 export-type-card">
+                    <input type="checkbox" data-export-type="storedproducts" class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mt-1" checked />
+                    <div class="ml-3 flex-1">
+                      <div class="text-sm font-medium text-gray-900">Stored Articles</div>
+                      <div class="text-xs text-gray-500 mt-1">Products stored in warehouse</div>
+                    </div>
+                  </label>
+                  
+                  <label class="flex items-start p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-all duration-200 export-type-card">
+                    <input type="checkbox" data-export-type="packedproducts" class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mt-1" checked />
+                    <div class="ml-3 flex-1">
+                      <div class="text-sm font-medium text-gray-900">Packed Articles</div>
+                      <div class="text-xs text-gray-500 mt-1">Individual packed products</div>
+                    </div>
+                  </label>
+                  
+                  <label class="flex items-start p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-all duration-200 export-type-card">
+                    <input type="checkbox" data-export-type="packedorders" class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mt-1" checked />
+                    <div class="ml-3 flex-1">
+                      <div class="text-sm font-medium text-gray-900">Packed Orders</div>
+                      <div class="text-xs text-gray-500 mt-1">Complete packed orders</div>
+                    </div>
+                  </label>
+                </div>
               </div>
 
               <!-- Quick Actions -->
               <div class="flex justify-center space-x-3 mb-6">
                 <button id="btn-select-all-exports" class="px-4 py-2 text-sm bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors">
-                  <i class="fas fa-check-all mr-1"></i> Select All
+                  <i class="fas fa-check-all mr-1"></i> Select All Export Types
                 </button>
                 <button id="btn-clear-all-exports" class="px-4 py-2 text-sm bg-gray-50 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors">
-                  <i class="fas fa-times mr-1"></i> Clear All
+                  <i class="fas fa-times mr-1"></i> Clear All Export Types
                 </button>
               </div>
 
@@ -298,6 +332,10 @@
                 <div class="flex items-center justify-between">
                   <span class="text-gray-600">Date Range</span>
                   <span class="font-medium" id="summaryDaysDisplay">Not set</span>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-gray-600">Accounts</span>
+                  <span class="font-medium" id="summaryAccounts">2 selected</span>
                 </div>
                 <div class="flex items-center justify-between">
                   <span class="text-gray-600">Export Types</span>

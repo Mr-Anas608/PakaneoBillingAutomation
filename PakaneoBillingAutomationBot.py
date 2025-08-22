@@ -17,7 +17,7 @@ from playwright_stealth import stealth_async
 from dotenv import load_dotenv
 
 from logs.custom_logging import setup_logging 
-from input.base_input import EMAIL, PASSWORD, MAX_BROWSER_SESSIONS, BASE_URLS, PAGE_LOAD_TIMEOUT, LOGIN_TIMEOUT, API_REQUEST_TIMEOUT, MAX_RETRIES, RETRY_DELAY
+from input.base_input import EMAIL, PASSWORD, MAX_BROWSER_SESSIONS, PAGE_LOAD_TIMEOUT, LOGIN_TIMEOUT, API_REQUEST_TIMEOUT, MAX_RETRIES, RETRY_DELAY
 from utils.pakaneo_csv_downloader import PakaneCsvDownloader
 from utils.helpers import save_auth_data, validate_auth_data, get_auth_data, save_report
 from datetime import datetime
@@ -34,13 +34,13 @@ class PakaneoBillingAutomationBot:
         api_user_ids: List[int],
         start_date: str,
         end_date: str,
-        base_urls: List[str] = BASE_URLS,
+        account_urls: List[str],
         export_types: List[str] = None
     ):
         self.api_user_ids = api_user_ids
         self.start_date = start_date
         self.end_date = end_date
-        self.base_urls = base_urls
+        self.account_urls = account_urls
         self.export_types = export_types
         self.semaphore_limit = asyncio.Semaphore(MAX_BROWSER_SESSIONS)
         
@@ -257,7 +257,7 @@ class PakaneoBillingAutomationBot:
         
         for attempt in range(MAX_RETRIES):
             try:
-                for url in self.base_urls:
+                for url in self.account_urls:
                     full_url = f"{url}/settings/apiusers/{user_id}"
                     
                     # Load existing cookies if available

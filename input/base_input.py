@@ -33,8 +33,11 @@ RETRY_DELAY = 2.0              # Delay between retries in seconds
 EMAIL = os.getenv("EMAIL")
 PASSWORD = os.getenv("PASSWORD")
 
-# Base URLs to try for authentication
-BASE_URLS = [
-    "https://millerbecker2.pakaneo.com",
-    "https://millerbecker.pakaneo.com",
-]
+# Available accounts for selection
+SELECTED_ACCOUNTS = ['millerbecker2', 'millerbecker']  # Default: both selected
+
+# Account URL mapping
+ACCOUNT_URLS = {
+    'millerbecker2': 'https://millerbecker2.pakaneo.com',
+    'millerbecker': 'https://millerbecker.pakaneo.com'
+}

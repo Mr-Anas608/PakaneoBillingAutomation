@@ -5,6 +5,7 @@
     customers: [],
     filtered: [],
     selectedIds: new Set(),
+    selectedAccounts: new Set(["millerbecker2", "millerbecker"]), // Default both selected
     selectedExports: new Set(["storeproducts", "storedproducts", "packedproducts", "packedorders"]), // Default all selected
     status: "idle", // idle | running | done | failed
     startDate: "",
@@ -80,6 +81,10 @@
   // Export type buttons
   const btnSelectAllExports = document.getElementById("btn-select-all-exports");
   const btnClearAllExports = document.getElementById("btn-clear-all-exports");
+  
+  // Account selection buttons
+  const btnSelectAllAccounts = document.getElementById("btn-select-all-accounts");
+  const btnClearAllAccounts = document.getElementById("btn-clear-all-accounts");
 
   // ---- Utils ----
   function dayCount(a, b) {
@@ -251,6 +256,10 @@
     if (summaryDaysDisplay) {
       summaryDaysDisplay.textContent = formatDateRange(state.startDate, state.endDate);
     }
+    const summaryAccounts = document.getElementById("summaryAccounts");
+    if (summaryAccounts) {
+      summaryAccounts.textContent = `${state.selectedAccounts.size} selected`;
+    }
     const summaryExportTypes = document.getElementById("summaryExportTypes");
     if (summaryExportTypes) {
       summaryExportTypes.textContent = `${state.selectedExports.size} selected`;
@@ -277,7 +286,7 @@
     if (summaryFilesCount) summaryFilesCount.textContent = state.selectedIds.size * state.selectedExports.size; // Dynamic file count
     
     // Update download button state
-    btnStart.disabled = !(state.selectedIds.size > 0 && state.startDate && state.endDate && state.selectedExports.size > 0);
+    btnStart.disabled = !(state.selectedIds.size > 0 && state.startDate && state.endDate && state.selectedAccounts.size > 0 && state.selectedExports.size > 0);
     
     // Update range summary
     updateRangeSummary();
@@ -286,7 +295,7 @@
     // Update navigation buttons
     btnNext1.disabled = state.selectedIds.size === 0;
     btnNext2.disabled = !(state.startDate && state.endDate);
-    btnNext3.disabled = state.selectedExports.size === 0;
+    btnNext3.disabled = !(state.selectedAccounts.size > 0 && state.selectedExports.size > 0);
   }
 
   function renderCustomerCard(cust) {
@@ -574,7 +583,8 @@
       
       const api_user_ids = Array.from(state.selectedIds);
       const export_types = Array.from(state.selectedExports);
-      const payload = { api_user_ids, start_date: state.startDate, end_date: state.endDate, export_types };
+      const selected_accounts = Array.from(state.selectedAccounts);
+      const payload = { api_user_ids, start_date: state.startDate, end_date: state.endDate, export_types, selected_accounts };
       const data = await sendJSON("/api/run", "POST", payload);
       
       if (data.task_id) {
@@ -811,6 +821,9 @@
 
   function resetWizard() {
     state.selectedIds.clear();
+    state.selectedAccounts.clear();
+    state.selectedAccounts.add("millerbecker2");
+    state.selectedAccounts.add("millerbecker");
     state.selectedExports.clear();
     state.selectedExports.add("storeproducts");
     state.selectedExports.add("storedproducts");
@@ -820,7 +833,8 @@
     state.endDate = "";
     startDate.value = "";
     endDate.value = "";
-    // Reset export checkboxes
+    // Reset checkboxes
+    document.querySelectorAll('[data-account]').forEach(cb => cb.checked = true);
     document.querySelectorAll('[data-export-type]').forEach(cb => cb.checked = true);
     showStep(1);
     runMessage.classList.add("hidden");
@@ -880,8 +894,18 @@
   btnBack4.addEventListener("click", prevStep);
   btnReset.addEventListener("click", resetWizard);
   
-  // Export type selection events
+  // Account and export type selection events
   document.addEventListener("change", (e) => {
+    if (e.target.matches('[data-account]')) {
+      const account = e.target.getAttribute("data-account");
+      if (e.target.checked) {
+        state.selectedAccounts.add(account);
+      } else {
+        state.selectedAccounts.delete(account);
+      }
+      updateSummaries();
+    }
+    
     if (e.target.matches('[data-export-type]')) {
       const exportType = e.target.getAttribute("data-export-type");
       if (e.target.checked) {
@@ -905,6 +929,22 @@
     document.querySelectorAll('[data-export-type]').forEach(cb => {
       cb.checked = false;
       state.selectedExports.delete(cb.getAttribute("data-export-type"));
+    });
+    updateSummaries();
+  });
+  
+  btnSelectAllAccounts.addEventListener("click", () => {
+    document.querySelectorAll('[data-account]').forEach(cb => {
+      cb.checked = true;
+      state.selectedAccounts.add(cb.getAttribute("data-account"));
+    });
+    updateSummaries();
+  });
+  
+  btnClearAllAccounts.addEventListener("click", () => {
+    document.querySelectorAll('[data-account]').forEach(cb => {
+      cb.checked = false;
+      state.selectedAccounts.delete(cb.getAttribute("data-account"));
     });
     updateSummaries();
   });
